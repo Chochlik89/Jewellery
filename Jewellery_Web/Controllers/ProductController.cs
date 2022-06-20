@@ -1,4 +1,5 @@
 ﻿using Jewellery_DataAccess;
+using Jewellery_DataAccess.Repositories.IRepositories;
 using Jewellery_Models;
 using Jewellery_Models.ViewModels;
 using Jewellery_Utility;
@@ -18,19 +19,19 @@ namespace Jewellery.Controllers
 
     public class ProductController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IProductRepository _prodRepo;
 
         private readonly IWebHostEnvironment _webHostEnvironment;
 
-        public ProductController(ApplicationDbContext db, IWebHostEnvironment webHostEnvironment)
+        public ProductController(IProductRepository prodRepo, IWebHostEnvironment webHostEnvironment)
         {
-            _db = db;
+            _prodRepo = prodRepo;
             _webHostEnvironment = webHostEnvironment;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<Product> objList = _db.Product.Include(u=>u.Category).Include(u=>u.MaterialType);
+            IEnumerable<Product> objList = _prodRepo.GetAll(includeProperties: "Category,MaterialType");
 
             //foreach (var obj in objList)
             //{
@@ -53,22 +54,11 @@ namespace Jewellery.Controllers
             //ViewBag.CategoryDropDown = CategoryDropDown;
             //ViewData["CategoryDropDown"] = CategoryDropDown;
 
-            //Product product = new Product();
-
             ProductVM productVM = new ProductVM()
             {
                 Product = new Product(),
-                CategorySelectList = _db.Category.Select(i => new SelectListItem
-                {
-                    Text = i.Name,
-                    Value = i.Id.ToString()
-                }),
-                MaterialTypeSelectList = _db.MaterialType.Select(i => new SelectListItem
-                {
-                    Text = i.Name,
-                    Value = i.Id.ToString()
-                })
-
+                CategorySelectList = _prodRepo.GetAllDropdownList(WebConstants.CategoryName),
+                MaterialTypeSelectList = _prodRepo.GetAllDropdownList(WebConstants.MaterialTypeName)
             };
 
             if (id == null)
@@ -78,7 +68,7 @@ namespace Jewellery.Controllers
             }
             else
             {
-                productVM.Product = _db.Product.Find(id);
+                productVM.Product = _prodRepo.Find(id.GetValueOrDefault());
                 if (productVM.Product == null)
                 {
                     return NotFound();
@@ -111,12 +101,12 @@ namespace Jewellery.Controllers
 
                     productVM.Product.Image = fileName + extension;
 
-                    _db.Product.Add(productVM.Product);
+                    _prodRepo.Add(productVM.Product);
                 }
                 else
                 {
                     //Updating
-                    var objFromDb = _db.Product.AsNoTracking().FirstOrDefault(u => u.Id == productVM.Product.Id);
+                    var objFromDb = _prodRepo.FirstOrDefault(u => u.Id == productVM.Product.Id, isTracking: false);
 
                     if (files.Count > 0)
                     {
@@ -142,22 +132,13 @@ namespace Jewellery.Controllers
                     {
                         productVM.Product.Image = objFromDb.Image;
                     }
-                    _db.Product.Update(productVM.Product);
+                    _prodRepo.Update(productVM.Product);
                 }
-                _db.SaveChanges();
+                _prodRepo.Save();
                 return RedirectToAction("Index");
             }
-            productVM.CategorySelectList = _db.Category.Select(i => new SelectListItem
-            {
-                Text = i.Name,
-                Value = i.Id.ToString()
-            });
-
-            productVM.MaterialTypeSelectList = _db.MaterialType.Select(i => new SelectListItem
-            {
-                Text = i.Name,
-                Value = i.Id.ToString()
-            });
+            productVM.CategorySelectList = _prodRepo.GetAllDropdownList(WebConstants.CategoryName);
+            productVM.MaterialTypeSelectList = _prodRepo.GetAllDropdownList(WebConstants.MaterialTypeName);
 
             return View(productVM);
         }
@@ -170,7 +151,7 @@ namespace Jewellery.Controllers
                 return NotFound();
             }
 
-            var objToDelete = _db.Product.Include(u => u.Category).Include(u => u.MaterialType).FirstOrDefault(u => u.Id == id);  // I did not include the category when doing this action myself. //***** ***
+            var objToDelete = _prodRepo.FirstOrDefault(u => u.Id == id, includeProperties: "Category,MaterialType");
 
             if (objToDelete == null)
             {
@@ -184,7 +165,7 @@ namespace Jewellery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult DeletePost(int? id)
         {
-            var objToDelete = _db.Product.Find(id);
+            var objToDelete = _prodRepo.Find(id.GetValueOrDefault());
             if (objToDelete == null)
             {
                 return NotFound();
@@ -199,9 +180,9 @@ namespace Jewellery.Controllers
                 System.IO.File.Delete(fileToDelete);
             }
 
-            _db.Product.Remove(objToDelete);
-            
-            _db.SaveChanges();
+            _prodRepo.Remove(objToDelete);
+
+            _prodRepo.Save();
             return RedirectToAction("Index");
         }
     }

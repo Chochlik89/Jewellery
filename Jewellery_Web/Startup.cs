@@ -1,4 +1,6 @@
 using Jewellery_DataAccess;
+using Jewellery_DataAccess.Repositories;
+using Jewellery_DataAccess.Repositories.IRepositories;
 using Jewellery_Utility;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -44,6 +46,11 @@ namespace Jewellery
                 Options.Cookie.HttpOnly = true;
                 Options.Cookie.IsEssential = true;
             });
+
+            services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IMaterialTypeRepository, MaterialTypeRepository>();
+            services.AddScoped<IProductRepository, ProductRepository>();
+
             services.AddControllersWithViews();
         }
 

@@ -9,5 +9,9 @@
         public const string CustomerRole = "Customer";
 
         public const string EmailAdmin = "admin@admin.pl";
+
+        public const string CategoryName = "Category";
+        public const string MaterialTypeName = "MaterialType";
+
     }
 }

@@ -13,6 +13,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Jewellery_Models\Jewellery_Models.csproj" />
+    <ProjectReference Include="..\Jewellery_Utility\Jewellery_Utility.csproj" />
   </ItemGroup>
 
 </Project>

@@ -115,7 +115,7 @@ namespace Jewellery.Controllers
                 ProductUserVM.ApplicationUser.PhoneNumber,
                 productListSB.ToString());
 
-            await _emailSender.SendEmailAsync(WebConstants.EmailAdmin, subject, messageBody); //ZASYMULOWAĆ SPRAWDZENIE TEJ FUNKCJONALNOŚCI
+            await _emailSender.SendEmailAsync(WebConstants.EmailAdmin, subject, messageBody);
 
             return RedirectToAction(nameof(InquiryConformation));
         }

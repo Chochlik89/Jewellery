@@ -1,4 +1,5 @@
 ﻿using Jewellery_DataAccess;
+using Jewellery_DataAccess.Repositories.IRepositories;
 using Jewellery_Models;
 using Jewellery_Utility;
 using Microsoft.AspNetCore.Authorization;
@@ -11,16 +12,16 @@ namespace Jewellery.Controllers
 
     public class MaterialTypeController : Controller
     {
-        private readonly ApplicationDbContext _db;
+        private readonly IMaterialTypeRepository _matTypeRepo;
 
-        public MaterialTypeController(ApplicationDbContext db)
+        public MaterialTypeController(IMaterialTypeRepository matTypeRepo)
         {
-            _db = db;
+            _matTypeRepo = matTypeRepo;
         }
 
         public IActionResult Index()
         {
-            IEnumerable<MaterialType> objList = _db.MaterialType;
+            IEnumerable<MaterialType> objList = _matTypeRepo.GetAll();
             return View(objList);
         }
 
@@ -35,21 +36,20 @@ namespace Jewellery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(MaterialType obj)
         {
-            _db.MaterialType.Add(obj);
-            _db.SaveChanges();
+            _matTypeRepo.Add(obj);
+            _matTypeRepo.Save();
             return RedirectToAction("Index");
         }
 
         //GET-EDIT
-        public IActionResult Edit(int? id) // I forgot "?" during course assignment.
+        public IActionResult Edit(int? id)
         {
-            if (id == null || id == 0) // I forgot about this condition during course assignment,
-                                       // but it is redundant because Find() method returns null for these values.
+            if (id == null || id == 0)
             {
                 return NotFound();
             }
 
-            var obj = _db.MaterialType.Find(id);
+            var obj = _matTypeRepo.Find(id.GetValueOrDefault());
             if (obj == null)
             {
                 return NotFound();
@@ -63,11 +63,10 @@ namespace Jewellery.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(MaterialType obj)
         {
-            if (ModelState.IsValid) // I forgot about this condition during course assignment.
+            if (ModelState.IsValid)
             {
-                //_db.MaterialType.Find(obj.Id).Name = obj.Name;
-                _db.MaterialType.Update(obj);
-                _db.SaveChanges();
+                _matTypeRepo.Update(obj);
+                _matTypeRepo.Save();
                 return RedirectToAction("Index");
             }
 
@@ -77,7 +76,7 @@ namespace Jewellery.Controllers
         //GET-DELETE
         public IActionResult Delete(int? id)
         {
-            var obj = _db.MaterialType.Find(id);
+            var obj = _matTypeRepo.Find(id.GetValueOrDefault());
             if (obj == null)
             {
                 return NotFound();
@@ -89,26 +88,15 @@ namespace Jewellery.Controllers
         //POST-DELETE
         [HttpPost]
         [ValidateAntiForgeryToken]
-        // My solution does not secure from having null object.
-
-        /*public IActionResult Delete(MaterialType obj)
-        {
-            _db.MaterialType.Remove(obj);
-
-            _db.SaveChanges();
-            return RedirectToAction("Index");
-        }
-        */
-
         public IActionResult DeletePost(int? id)
         {
-            var obj = _db.MaterialType.Find(id);
+            var obj = _matTypeRepo.Find(id.GetValueOrDefault());
             if (obj == null)
             {
                 return NotFound();
             }
-            _db.MaterialType.Remove(obj);
-            _db.SaveChanges();
+            _matTypeRepo.Remove(obj);
+            _matTypeRepo.Save();
             return RedirectToAction("Index");
         }
     }
